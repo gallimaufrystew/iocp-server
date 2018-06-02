@@ -190,8 +190,8 @@ public:
 	CIocpServer &GetIocpServer();
 
 private:
-	CIocpServer *m_iocpServer;
 
+	CIocpServer *m_iocpServer;
 };
 
 } // end namespace

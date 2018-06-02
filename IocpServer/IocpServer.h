@@ -59,7 +59,7 @@ public:
 	//!***************************************************************************
 	CIocpServer(
 		uint16_t port,
-		shared_ptr<CIocpHandler> iocpHandler,
+		std::shared_ptr<CIocpHandler> iocpHandler,
 		uint32_t addressToListenOn = INADDR_ANY,
 		uint32_t rcvbufferSize = 0,
 		uint32_t numThread = 0
@@ -182,7 +182,7 @@ public:
 private:
 
 	class CImpl;
-	shared_ptr<CImpl> m_impl;
+	std::shared_ptr<CImpl> m_impl;
 };
 
 } // end namespace

@@ -21,7 +21,7 @@ public:
 	enum { DefaultRcvBufferSize = 4096 };
 
 	CImpl(uint16_t port,
-		shared_ptr<CIocpHandler> iocpHandler,
+		std::shared_ptr<CIocpHandler> iocpHandler,
 		uint32_t addressToListenOn,
 		uint32_t rcvbufferSize,
 		uint32_t numThread
@@ -58,10 +58,10 @@ public:
 			}
 
 			m_iocpData.m_shutdownEvent = CreateEvent(
-				NULL,  // lpEventAttributes
+				nullptr,  // lpEventAttributes
 				TRUE,  // bManualReset
 				FALSE, // bInitialState
-				NULL); // lpName
+				nullptr); // lpName
 
 			InitializeWinsock();
 
@@ -96,7 +96,7 @@ public:
 
 		for(uint32_t i=0; i<numThread; ++i)
 		{
-			m_threadPool.push_back(shared_ptr<detail::CWorkerThread>(
+			m_threadPool.push_back(std::shared_ptr<detail::CWorkerThread>(
 				new detail::CWorkerThread(m_iocpData)) 
 				);
 		}
@@ -108,7 +108,7 @@ public:
 		// See http://msdn.microsoft.com/en-us/library/aa363862%28VS.85%29.aspx
 		m_iocpData.m_ioCompletionPort = detail::CreateIocp();
 
-		if (NULL == m_iocpData.m_ioCompletionPort)
+		if (nullptr == m_iocpData.m_ioCompletionPort)
 		{
 			throw CWin32Exception(WSAGetLastError());
 		}
@@ -177,7 +177,7 @@ public:
 		m_iocpData.m_acceptExFn = 
 			detail::LoadAcceptEx(m_iocpData.m_listenSocket);
 
-		if(NULL == m_iocpData.m_acceptExFn)
+		if(nullptr == m_iocpData.m_acceptExFn)
 		{
 			throw CWin32Exception(GetLastError());
 		}
@@ -211,7 +211,7 @@ public:
 		// I/O operation.
 		m_iocpData.m_connectionManager.CloseAllConnections();
 
-		// Give out a NULL completion status to help unblock all worker
+		// Give out a nullptr completion status to help unblock all worker
 		// threads. This is retract all I/O request made to the threads, and
 		// it may not be a graceful shutdown. It is the user's job to
 		// graceful shutdown all connection before shutting down the server.
@@ -223,8 +223,8 @@ public:
 				m_iocpData.m_ioCompletionPort, 
 				0, 
 				(DWORD) 
-				NULL, 
-				NULL);
+				nullptr, 
+				nullptr);
 		}
 
 		//! @remark
@@ -257,7 +257,7 @@ public:
 			m_iocpData.m_ioCompletionPort = INVALID_HANDLE_VALUE;
 		}
 
-		if(m_iocpData.m_iocpHandler != NULL)
+		if(m_iocpData.m_iocpHandler != nullptr)
 		{
 			m_iocpData.m_iocpHandler->OnServerClose(0);
 			m_iocpData.m_iocpHandler.reset();
@@ -266,16 +266,16 @@ public:
 
 	void Send(uint64_t cid, std::vector<uint8_t> &data )
 	{
-		shared_ptr<detail::CConnection> connection = 
+		std::shared_ptr<detail::CConnection> connection = 
 			m_iocpData.m_connectionManager.GetConnection(cid);
 		
-		if(connection == NULL)
+		if(connection == nullptr)
 		{
 			throw CIocpException(tstring(_T("Connection does not exist")));
 			return;
 		}
 
-		shared_ptr<detail::CIocpContext> sendContext = 
+		std::shared_ptr<detail::CIocpContext> sendContext = 
 			connection->CreateSendContext();
 
 		// Take over user's data here and post it to the completion port.
@@ -297,10 +297,10 @@ public:
 
 	void Shutdown( uint64_t cid, int how )
 	{
-		shared_ptr<detail::CConnection> connection = 
+		std::shared_ptr<detail::CConnection> connection = 
 			m_iocpData.m_connectionManager.GetConnection(cid);
 
-		if(connection == NULL)
+		if(connection == nullptr)
 		{
 			throw CIocpException(tstring(_T("Connection does not exist")));
 			return;
@@ -311,10 +311,10 @@ public:
 
 	void Disconnect( uint64_t cid)
 	{
-		shared_ptr<detail::CConnection> c = 
+		std::shared_ptr<detail::CConnection> c = 
 			m_iocpData.m_connectionManager.GetConnection(cid);
 
-		if(c == NULL)
+		if(c == nullptr)
 		{
 			throw CIocpException(tstring(_T("Connection does not exist")));
 			return;
@@ -341,7 +341,7 @@ public:
 	detail::CSharedIocpData m_iocpData;
 
 	typedef std::vector <
-		shared_ptr<detail::CWorkerThread>
+		std::shared_ptr<detail::CWorkerThread>
 	> ThreadPool_t;
 
 	ThreadPool_t m_threadPool;
@@ -351,7 +351,7 @@ public:
 
 
 CIocpServer::CIocpServer(uint16_t port,
-						 shared_ptr<CIocpHandler> iocpHandler,
+						 std::shared_ptr<CIocpHandler> iocpHandler,
 						 uint32_t addressToListenOn /*= INADDR_ANY*/,
 						 uint32_t rcvbufferSize /*= 0*/,
 						 uint32_t numThread /*= 0*/
@@ -364,7 +364,7 @@ CIocpServer::CIocpServer(uint16_t port,
 		 numThread)
 		 )
 {
-	if(iocpHandler != NULL)
+	if(iocpHandler != nullptr)
 	{
 		iocpHandler->m_iocpServer = this;
 	}

@@ -17,7 +17,7 @@ namespace iocp { namespace detail {
 CWorkerThread::CWorkerThread(CSharedIocpData &iocpData)
 : m_iocpData(iocpData)
 {
-	m_thread = thread(bind(&CWorkerThread::Run, this));
+	m_thread = std::thread(std::bind(&CWorkerThread::Run, this));
 }
 
 CWorkerThread::~CWorkerThread()
@@ -29,14 +29,16 @@ void CWorkerThread::Run()
 {
 	for(;;)
 	{
-		void *key = NULL;
-		OVERLAPPED *overlapped = NULL;
+		//void *key = nullptr;
+		ULONG_PTR key = 0;
+		OVERLAPPED *overlapped = nullptr;
 		DWORD bytesTransferred = 0;
 
 		BOOL completionStatus = GetQueuedCompletionStatus(
 			m_iocpData.m_ioCompletionPort,
 			&bytesTransferred,
-			(LPDWORD)&key,
+			//(LPDWORD)&key,
+			&key,
 			&overlapped,
 			INFINITE);
 
@@ -46,10 +48,10 @@ void CWorkerThread::Run()
 			continue;
 		}
 
-		// NULL key packet is a special status that unblocks the worker
+		// nullptr key packet is a special status that unblocks the worker
 		// thread to initial a shutdown sequence. The thread should be going
 		// down soon.
-		if(NULL == key)
+		if(nullptr == key)
 		{
 			break;
 		}
@@ -63,9 +65,9 @@ void CWorkerThread::Run()
 
 void CWorkerThread::HandleReceive( CIocpContext &rcvContext, DWORD bytesTransferred )
 {
-	shared_ptr<CConnection> c = 
+	std::shared_ptr<CConnection> c = 
 		m_iocpData.m_connectionManager.GetConnection(rcvContext.m_cid);
-	if(c == NULL)
+	if(c == nullptr)
 	{
 		assert(false);
 		return;
@@ -80,7 +82,7 @@ void CWorkerThread::HandleReceive( CIocpContext &rcvContext, DWORD bytesTransfer
 		rcvContext.m_data.resize(bytesTransferred);
 		assert(rcvContext.m_data.size() == bytesTransferred);
 
-		if(m_iocpData.m_iocpHandler != NULL)
+		if(m_iocpData.m_iocpHandler != nullptr)
 		{
 			// Invoke the callback for the client
 			m_iocpData.m_iocpHandler->OnReceiveData(
@@ -106,7 +108,7 @@ void CWorkerThread::HandleReceive( CIocpContext &rcvContext, DWORD bytesTransfer
 		{
 			::shutdown(c->m_socket, SD_RECEIVE);
 
-			if(m_iocpData.m_iocpHandler != NULL)
+			if(m_iocpData.m_iocpHandler != nullptr)
 			{
 				m_iocpData.m_iocpHandler->OnClientDisconnect(
 					cid,
@@ -118,9 +120,9 @@ void CWorkerThread::HandleReceive( CIocpContext &rcvContext, DWORD bytesTransfer
 
 void CWorkerThread::HandleSend( CIocpContext &iocpContext, DWORD bytesTransferred )
 {
-	shared_ptr<CConnection> c = 
+	std::shared_ptr<CConnection> c = 
 		m_iocpData.m_connectionManager.GetConnection(iocpContext.m_cid);
-	if(c == NULL)
+	if(c == nullptr)
 	{
 		assert(false);
 		return;
@@ -130,7 +132,7 @@ void CWorkerThread::HandleSend( CIocpContext &iocpContext, DWORD bytesTransferre
 
 	if(bytesTransferred > 0 )
 	{
-		if(m_iocpData.m_iocpHandler != NULL)
+		if(m_iocpData.m_iocpHandler != nullptr)
 		{
 			m_iocpData.m_iocpHandler->OnSentData(cid, bytesTransferred);
 		}
@@ -146,7 +148,7 @@ void CWorkerThread::HandleSend( CIocpContext &iocpContext, DWORD bytesTransferre
 	//! there is a race condition where a disconnect context maybe waiting 
 	//! for the send queue to go to zero at the same time. In this case,
 	//! the disconnect notification will come before we notify the user.
-	int outstandingSend = c->m_sendQueue.RemoveSendContext(&iocpContext);
+	uintptr_t outstandingSend = c->m_sendQueue.RemoveSendContext(&iocpContext);
 
 	// If there is no outstanding send context, that means all sends 
 	// are completed for the moment. At this point, if we have a half-closed 
@@ -187,7 +189,7 @@ void CWorkerThread::HandleAccept( CIocpContext &acceptContext, DWORD bytesTransf
 		sizeof(m_iocpData.m_listenSocket)
 		) != 0)
 	{
-		if(m_iocpData.m_iocpHandler != NULL)
+		if(m_iocpData.m_iocpHandler != nullptr)
 		{
 			// This shouldn't happen, but if it does, report the error. 
 			// Since the connection has not been established, it is not necessary
@@ -201,7 +203,7 @@ void CWorkerThread::HandleAccept( CIocpContext &acceptContext, DWORD bytesTransf
 		ConnectionInformation cinfo = 
 			GetConnectionInformation(acceptContext.m_socket);
 
-		shared_ptr<CConnection> c(new CConnection(
+		std::shared_ptr<CConnection> c(new CConnection(
 			acceptContext.m_socket, 
 			m_iocpData.GetNextId(),
 			m_iocpData.m_rcvBufferSize
@@ -211,7 +213,7 @@ void CWorkerThread::HandleAccept( CIocpContext &acceptContext, DWORD bytesTransf
 
 		AssociateDevice((HANDLE)c->m_socket, m_iocpData);
 
-		if(m_iocpData.m_iocpHandler != NULL)
+		if(m_iocpData.m_iocpHandler != nullptr)
 		{
 			m_iocpData.m_iocpHandler->OnNewConnection(c->m_id, cinfo);
 		}
@@ -243,7 +245,7 @@ void CWorkerThread::HandleAccept( CIocpContext &acceptContext, DWORD bytesTransf
 	}
 	else
 	{
-		if(m_iocpData.m_iocpHandler != NULL)
+		if(m_iocpData.m_iocpHandler != nullptr)
 		{
 			m_iocpData.m_iocpHandler->OnServerError(WSAGetLastError());
 		}
@@ -276,7 +278,7 @@ void CWorkerThread::HandleCompletionFailure(OVERLAPPED * overlapped,
 											DWORD bytesTransferred, 
 											int error )
 {
-	if (NULL != overlapped ) 
+	if (nullptr != overlapped ) 
 	{
 		// Process a failed completed I/O request
 		// dwError contains the reason for failure
@@ -291,7 +293,7 @@ void CWorkerThread::HandleCompletionFailure(OVERLAPPED * overlapped,
 		// timeout.
 		assert(WAIT_TIMEOUT != error);
 		
-		if(m_iocpData.m_iocpHandler != NULL)
+		if(m_iocpData.m_iocpHandler != nullptr)
 		{
 			// GetQueuedCompletionStatus failed. Notify the user on this event.
 			m_iocpData.m_iocpHandler->OnServerError(error);
@@ -307,9 +309,9 @@ void CWorkerThread::HandleDisconnect( CIocpContext &iocpContext )
 	// be deleted manually at all times.
 	delete &iocpContext;
 
-	shared_ptr<CConnection> c = 
+	std::shared_ptr<CConnection> c = 
 		m_iocpData.m_connectionManager.GetConnection(cid);
-	if(c == NULL)
+	if(c == nullptr)
 	{
 		//! @remark
 		//! Disconnect context may come from several different source at 
@@ -327,7 +329,7 @@ void CWorkerThread::HandleDisconnect( CIocpContext &iocpContext )
 
 	if(true == m_iocpData.m_connectionManager.RemoveConnection(cid) )
 	{
-		if(m_iocpData.m_iocpHandler != NULL)
+		if(m_iocpData.m_iocpHandler != nullptr)
 		{
 			m_iocpData.m_iocpHandler->OnDisconnect(cid,0);
 		}

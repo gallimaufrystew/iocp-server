@@ -15,22 +15,22 @@ class CSendQueue
 public:
 	~CSendQueue();
 
-	void AddSendContext(shared_ptr<CIocpContext> sendContext);
+	void AddSendContext(std::shared_ptr<CIocpContext> sendContext);
 
-	int RemoveSendContext(CIocpContext *sendContext);
+	uintptr_t RemoveSendContext(CIocpContext *sendContext);
 
 	void CloseAllSends();
 
-	uint32_t NumOutstandingContext();
+	uintptr_t NumOutstandingContext();
 
 private:
 	typedef std::map<
-		CIocpContext *, shared_ptr<CIocpContext> 
+		CIocpContext *, std::shared_ptr<CIocpContext> 
 	> SendContextMap_t;
 
 	SendContextMap_t m_sendContextMap;
 
-	mutex m_mutex;
+	std::mutex m_mutex;
 };
 
 } } // end namespace

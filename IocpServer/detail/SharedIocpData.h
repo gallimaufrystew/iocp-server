@@ -8,13 +8,13 @@
 
 #include "ConnectionManager.h"
 #include "IocpContext.h"
-#include "../ConnectionInformation.h"
+#include "ConnectionInformation.h"
 
 namespace iocp { class CIocpHandler; }
 
 namespace iocp { namespace detail {
 
-class CSharedIocpData : boost::noncopyable
+class CSharedIocpData
 {
 public:
 	CSharedIocpData() 
@@ -34,7 +34,8 @@ public:
 	LONGLONG GetNextId()
 	{
 		{
-			mutex::scoped_lock l(m_cidMutex);
+			//std::scoped_lock l(m_cidMutex);
+			std::lock_guard<std::mutex> l(m_cidMutex);
 			++m_currentId;
 		}
 
@@ -46,13 +47,15 @@ public:
 	HANDLE m_ioCompletionPort;
 	SOCKET m_listenSocket;
 	CConnectionManager m_connectionManager;
-	shared_ptr<CIocpHandler> m_iocpHandler;
+	std::shared_ptr<CIocpHandler> m_iocpHandler;
 	CIocpContext m_acceptContext;
 	uint32_t m_rcvBufferSize;
 	LPFN_ACCEPTEX m_acceptExFn;
 
+	CSharedIocpData(const CSharedIocpData&) = delete;
+
 private:
-	mutex m_cidMutex;
+	std::mutex m_cidMutex;
 	LONGLONG m_currentId;
 };
 

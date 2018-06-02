@@ -6,6 +6,6 @@
 #ifndef STDAFX_H_2010_09_21_23_24_12
 #define STDAFX_H_2010_09_21_23_24_12
 
-#include "../ExternalLibraries.h"
+#include "ExternalLibraries.h"
 
 #endif // STDAFX_H_2010_09_21_23_24_12

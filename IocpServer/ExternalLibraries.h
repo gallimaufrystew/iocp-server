@@ -12,10 +12,26 @@
 #define _HAS_ITERATOR_DEBUGGING 0
 
 // Exclude rarely-used stuff from Windows headers
-#define WIN32_LEAN_AND_MEAN		
-#include "windows.h"
+#define WIN32_LEAN_AND_MEAN
+
 #include <WinSock2.h>
 #include <WS2tcpip.h>
+#include <windows.h>
+
+#include <memory>
+#include <vector>
+#include <mutex>
+#include <thread>
+#include <iostream>
+#include <vector>
+#include <functional>
+#include <chrono>
+#include <string>
+#include <map>
+#include <exception>
+#include <cassert>
+#include <cstdint>
+
 // Mswsock.h must be included after WinSock2.h
 #include <Mswsock.h>
 
@@ -24,11 +40,14 @@
 
 // Disable boost datetime warnings where it is implicitly casting integer to short.
 #pragma warning(disable:4244)
+
+/*
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/noncopyable.hpp>
+*/
 #pragma warning(default:4244)
 
 #include <tchar.h>
@@ -41,6 +60,7 @@
 
 namespace iocp
 {
+/*
 	using boost::shared_ptr;
 	using boost::uint8_t;
 	using boost::uint16_t;
@@ -55,6 +75,7 @@ namespace iocp
 	using boost::bind;
 	using boost::function;
 	using boost::noncopyable;
+*/
 
 #ifdef _UNICODE
 	typedef std::wstring tstring;

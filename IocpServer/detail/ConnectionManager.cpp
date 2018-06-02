@@ -9,9 +9,10 @@
 
 namespace iocp { namespace detail {
 
-void CConnectionManager::AddConnection( shared_ptr<CConnection> client )
+void CConnectionManager::AddConnection( std::shared_ptr<CConnection> client )
 {
-	mutex::scoped_lock lock(m_mutex);
+	//mutex::scoped_lock lock(m_mutex);
+	std::lock_guard<std::mutex> lock(m_mutex);
 
 	bool inserted = m_connMap.insert(std::make_pair(
 		client->m_id, client
@@ -22,30 +23,34 @@ void CConnectionManager::AddConnection( shared_ptr<CConnection> client )
 
 bool CConnectionManager::RemoveConnection( uint64_t clientId )
 {
-	mutex::scoped_lock lock(m_mutex);
-
+	//mutex::scoped_lock lock(m_mutex);
+	std::lock_guard<std::mutex> lock(m_mutex);
 	return (m_connMap.erase(clientId) > 0);
 }
 
-shared_ptr<CConnection> CConnectionManager::GetConnection( uint64_t clientId )
+std::shared_ptr<CConnection> CConnectionManager::GetConnection( uint64_t clientId )
 {
-	mutex::scoped_lock lock(m_mutex);
+	//mutex::scoped_lock lock(m_mutex);
 
-	ConnMap_t::iterator itr = m_connMap.find(clientId);
+	std::lock_guard<std::mutex> lock(m_mutex);
+
+	auto itr = m_connMap.find(clientId);
 
 	if(m_connMap.end() != itr)
 	{
 		return itr->second;
 	}
 
-	return shared_ptr<CConnection>();
+	return std::shared_ptr<CConnection>();
 }
 
 void CConnectionManager::CloseAllConnections()
 {
-	mutex::scoped_lock lock(m_mutex);
+	//mutex::scoped_lock lock(m_mutex);
 
-	ConnMap_t::iterator itr = m_connMap.begin();
+	std::lock_guard<std::mutex> lock(m_mutex);
+
+	auto itr = m_connMap.begin();
 	while(m_connMap.end() != itr)
 	{
 		CancelIo((HANDLE)itr->second->m_socket);

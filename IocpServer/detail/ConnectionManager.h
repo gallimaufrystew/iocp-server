@@ -12,11 +12,11 @@ namespace iocp { namespace detail {
 class CConnectionManager
 {
 public:
-	void AddConnection(shared_ptr<CConnection> client);
+	void AddConnection(std::shared_ptr<CConnection> client);
 
 	bool RemoveConnection(uint64_t clientId);
 
-	shared_ptr<CConnection> GetConnection(uint64_t clientId);
+	std::shared_ptr<CConnection> GetConnection(uint64_t clientId);
 
 	void CloseAllConnections();
 
@@ -24,12 +24,12 @@ private:
 
 	typedef std::map<
 		uint64_t,
-		shared_ptr<CConnection>
+		std::shared_ptr<CConnection>
 	> ConnMap_t;
 
 	ConnMap_t m_connMap;
 
-	mutex m_mutex;
+	std::mutex m_mutex;
 };
 
 } } // end namespace

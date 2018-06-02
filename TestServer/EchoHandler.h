@@ -1,8 +1,9 @@
+
 #include "../IocpServer/ExternalLibraries.h"
 #include "../IocpServer/IocpServer.h"
 #include <conio.h>
 #include <fstream>
-#include <boost/thread.hpp>
+//#include <boost/thread.hpp>
 #include <string>
 using namespace iocp;
 
@@ -41,7 +42,8 @@ public:
 	{
 		// critical section
 		{
-			mutex::scoped_lock l(m_mutex);
+			//mutex::scoped_lock l(m_mutex);
+			std::lock_guard<std::mutex> l(m_mutex);
 			tcout
 				<< "New Connection  " 
 				<< std::hex << cid 
@@ -61,7 +63,8 @@ public:
 	{
 		// critical section
 		{
-			mutex::scoped_lock l(m_mutex);
+			//mutex::scoped_lock l(m_mutex);
+			std::lock_guard<std::mutex> l(m_mutex);
 
 			m_statistics[cid].m_byteRcv+= data.size();
 			m_statistics[cid].m_byteTriedToSent += data.size();
@@ -79,7 +82,8 @@ public:
 	{
 		// critical section
 		{
-			mutex::scoped_lock l(m_mutex);
+			//mutex::scoped_lock l(m_mutex);
+			std::lock_guard<std::mutex> l(m_mutex);
 			m_statistics[cid].m_byteActuallySent += byteTransferred;
 		}
 	}
@@ -91,7 +95,8 @@ public:
 	{
 		// critical section
 		{
-			mutex::scoped_lock l(m_mutex);
+			//mutex::scoped_lock l(m_mutex);
+			std::lock_guard<std::mutex> l(m_mutex);
 			std::cout 
 				<< "client disconnected " 
 				<< std::hex << cid 
@@ -136,7 +141,8 @@ public:
 		catch (CIocpException const &e)
 		{
 			{
-				mutex::scoped_lock l(m_mutex);
+				//mutex::scoped_lock l(m_mutex);
+				std::lock_guard<std::mutex> l(m_mutex);
 				std::cout << e.what()<< std::endl;
 			}
 
@@ -147,7 +153,9 @@ public:
 		catch (CWin32Exception const &e)
 		{
 			{
-				mutex::scoped_lock l(m_mutex);
+				//mutex::scoped_lock l(m_mutex);
+
+				std::lock_guard<std::mutex> l(m_mutex);
 				std::cout << e.what()<< std::endl;
 			}
 
@@ -164,7 +172,8 @@ public:
 	virtual void OnDisconnect(uint64_t cid, int32_t)
 	{
 		{
-			mutex::scoped_lock l(m_mutex);
+			//mutex::scoped_lock l(m_mutex);
+			std::lock_guard<std::mutex> l(m_mutex);
 			std::cout 
 				<< "Disconnected " 
 				<< std::hex << cid 
@@ -189,7 +198,8 @@ public:
 	}
 
 private:
-	boost::mutex m_mutex;
+	//boost::mutex m_mutex;
+	std::mutex m_mutex;
 	std::map<uint64_t, Statistics> m_statistics;
 
 	bool m_sendGracefulShutdownMessage;

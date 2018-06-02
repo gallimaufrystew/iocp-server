@@ -6,6 +6,8 @@
 #ifndef IOCPEXCEPTION_H_2010_09_22_23_03_38
 #define IOCPEXCEPTION_H_2010_09_22_23_03_38
 
+#include "ExternalLibraries.h"
+
 namespace iocp {
 
 class CWin32Exception : public std::exception

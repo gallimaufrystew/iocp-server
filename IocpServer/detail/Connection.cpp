@@ -29,9 +29,9 @@ CConnection::~CConnection()
 	closesocket(m_socket);
 }
 
-shared_ptr<CIocpContext> CConnection::CreateSendContext()
+std::shared_ptr<CIocpContext> CConnection::CreateSendContext()
 {
-	shared_ptr<CIocpContext> c (new CIocpContext(
+	std::shared_ptr<CIocpContext> c (new CIocpContext(
 		m_socket, 
 		m_id, 
 		CIocpContext::Send,

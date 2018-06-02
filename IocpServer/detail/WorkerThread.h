@@ -35,7 +35,7 @@ private:
 	void HandleDisconnect(CIocpContext &iocpContext);
 private:
 
-	boost::thread m_thread;
+	std::thread m_thread;
 
 	CSharedIocpData &m_iocpData;
 };

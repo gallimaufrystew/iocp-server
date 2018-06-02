@@ -18,9 +18,11 @@ CSendQueue::~CSendQueue()
 	CloseAllSends();
 }
 
-void CSendQueue::AddSendContext( shared_ptr<CIocpContext> sendContext )
+void CSendQueue::AddSendContext( std::shared_ptr<CIocpContext> sendContext )
 {
-	mutex::scoped_lock l(m_mutex);
+	//mutex::scoped_lock l(m_mutex);
+
+	std::lock_guard<std::mutex> l(m_mutex);
 
 	bool inserted = m_sendContextMap.insert(
 		std::make_pair(sendContext.get(), sendContext)
@@ -28,22 +30,25 @@ void CSendQueue::AddSendContext( shared_ptr<CIocpContext> sendContext )
 	assert(true == inserted);
 }
 
-int CSendQueue::RemoveSendContext( CIocpContext* sendContext )
+uintptr_t CSendQueue::RemoveSendContext( CIocpContext* sendContext )
 {
-	mutex::scoped_lock l(m_mutex);
+	//mutex::scoped_lock l(m_mutex);
+	std::lock_guard<std::mutex> l(m_mutex);
 	m_sendContextMap.erase(sendContext);
 	return m_sendContextMap.size();
 }
 
-uint32_t CSendQueue::NumOutstandingContext()
+uintptr_t CSendQueue::NumOutstandingContext()
 {
-	mutex::scoped_lock l(m_mutex);
+	//mutex::scoped_lock l(m_mutex);
+	std::lock_guard<std::mutex> l(m_mutex);
 	return m_sendContextMap.size();
 }
 
 void CSendQueue::CloseAllSends()
 {
-	mutex::scoped_lock l(m_mutex);
+	//mutex::scoped_lock l(m_mutex);
+	std::lock_guard<std::mutex> l(m_mutex);
 
 	SendContextMap_t::iterator itr = m_sendContextMap.begin();
 	while(m_sendContextMap.end() != itr)

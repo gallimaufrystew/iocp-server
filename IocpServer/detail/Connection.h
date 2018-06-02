@@ -19,7 +19,7 @@ public:
 	~CConnection();
 	bool CloseRcvContext();
 
-	shared_ptr<CIocpContext> CreateSendContext();
+	std::shared_ptr<CIocpContext> CreateSendContext();
 
 	bool HasOutstandingContext();
 
@@ -36,7 +36,7 @@ public:
 
 	CIocpContext m_disconnectContext;
 
-	mutex m_connectionMutex;
+	std::mutex m_connectionMutex;
 };
 
 } } // end namespace

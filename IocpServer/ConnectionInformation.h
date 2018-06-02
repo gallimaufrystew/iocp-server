@@ -22,7 +22,7 @@ namespace iocp {
 		}
 		tstring m_remoteIpAddress;
 		tstring m_remoteHostName;
-		boost::uint16_t m_remotePortNumber;
+		uint16_t m_remotePortNumber;
 	};
 
 } // end namespace
