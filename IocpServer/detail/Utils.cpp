@@ -1,3 +1,4 @@
+@@ -1,291 +0,0 @@
 //! Copyright Alan Ning 2010
 //! Distributed under the Boost Software License, Version 1.0.
 //! (See accompanying file LICENSE_1_0.txt or copy at
@@ -14,11 +15,11 @@ namespace iocp { namespace detail {
 	SOCKET CreateOverlappedSocket()
 	{
 		return WSASocket(
-			AF_INET, 
-			SOCK_STREAM, 
-			IPPROTO_TCP, 
-			NULL, 
-			0, 
+			AF_INET,
+			SOCK_STREAM,
+			IPPROTO_TCP,
+			NULL,
+			0,
 			WSA_FLAG_OVERLAPPED);
 	}
 
@@ -28,7 +29,7 @@ namespace iocp { namespace detail {
 	//! This method extracts the Connection Information object in real time.
 	//! Therefore, the accept socket must be valid.
 	//!
-	//! @param[in] socket 
+	//! @param[in] socket
 	//! The socket to extract connection information from
 	//!
 	//! @return ndc::tcpip::ConnectionInformation
@@ -59,18 +60,18 @@ namespace iocp { namespace detail {
 		int ansiLen = lstrlenA(inet_ntoa(name.sin_addr));
 		LPWSTR unicodeIp = (LPWSTR)malloc((ansiLen) * sizeof(TCHAR));
 		if(::MultiByteToWideChar(
-			CP_ACP, 
-			0, 
-			inet_ntoa(name.sin_addr), 
-			ansiLen, 
-			unicodeIp, 
+			CP_ACP,
+			0,
+			inet_ntoa(name.sin_addr),
+			ansiLen,
+			unicodeIp,
 			ansiLen) != 0)
 		{
 			// The converted unicode IP address string is not NULL
 			// terminated. So we need to append the exact count.
 			ci.m_remoteIpAddress.append(unicodeIp, ansiLen);
 		}
-		
+
 		free(unicodeIp);
 
 #else
@@ -85,7 +86,7 @@ namespace iocp { namespace detail {
 #ifdef UNICODE
 		if(GetNameInfoW(
 			(sockaddr *) &name,
-			sizeof (sockaddr), 
+			sizeof (sockaddr),
 			hostname, // hostname
 			NI_MAXHOST, // size of host name
 			servInfo,  // service info = port
@@ -97,7 +98,7 @@ namespace iocp { namespace detail {
 #else
 		if(getnameinfo(
 			(sockaddr *) &name,
-			sizeof (sockaddr), 
+			sizeof (sockaddr),
 			hostname, // hostname
 			NI_MAXHOST, // size of host name
 			servInfo,  // service info = port
@@ -106,14 +107,14 @@ namespace iocp { namespace detail {
 		{
 			return ci;
 		}
-#endif 
+#endif
 
 		ci.m_remoteHostName = hostname;
 
 		return ci;
 	}
 
-	void PostAccept(CSharedIocpData &iocpData) 
+	void PostAccept(CSharedIocpData &iocpData)
 	{
 		DWORD bytesReceived_ = 0;
 		DWORD addressSize = sizeof(sockaddr_in) + 16;
@@ -140,26 +141,26 @@ namespace iocp { namespace detail {
 		else
 		{
 			PostQueuedCompletionStatus(
-				iocpData.m_ioCompletionPort, 
-				0, 
-				(DWORD) 
-				(ULONG_PTR)&iocpData, 
+				iocpData.m_ioCompletionPort,
+				0,
+				(DWORD)
+				(ULONG_PTR)&iocpData,
 				&iocpData.m_acceptContext);
 		}
 	}
 
 
-	int PostRecv( CIocpContext &iocpContext ) 
+	int PostRecv( CIocpContext &iocpContext )
 	{
 		DWORD dwBytes = 0, dwFlags = 0;
 
 		if(WSARecv(
 			iocpContext.m_socket,
-			&iocpContext.m_wsaBuffer, 
-			1, 
-			&dwBytes, 
-			&dwFlags, 
-			&iocpContext, 
+			&iocpContext.m_wsaBuffer,
+			1,
+			&dwBytes,
+			&dwFlags,
+			&iocpContext,
 			NULL) == SOCKET_ERROR)
 		{
 			return WSAGetLastError();
@@ -174,12 +175,12 @@ namespace iocp { namespace detail {
 		DWORD dwBytes = 0;
 
 		if(WSASend(
-			iocpContext.m_socket, 
-			&iocpContext.m_wsaBuffer, 
-			1, 
-			&dwBytes, 
-			0, 
-			&iocpContext, 
+			iocpContext.m_socket,
+			&iocpContext.m_wsaBuffer,
+			1,
+			&dwBytes,
+			0,
+			&iocpContext,
 			NULL) == SOCKET_ERROR)
 		{
 			return WSAGetLastError();
@@ -188,12 +189,12 @@ namespace iocp { namespace detail {
 		return WSA_IO_PENDING;
 	}
 
-	void AssociateDevice(HANDLE h, CSharedIocpData &iocpData) 
+	void AssociateDevice(HANDLE h, CSharedIocpData &iocpData)
 	{
 		if (::CreateIoCompletionPort(
-			h, 
-			iocpData.m_ioCompletionPort, 
-			(ULONG_PTR)&iocpData, 
+			h,
+			iocpData.m_ioCompletionPort,
+			(ULONG_PTR)&iocpData,
 			0) != iocpData.m_ioCompletionPort)
 		{
 			if(iocpData.m_iocpHandler != NULL)
@@ -208,9 +209,9 @@ namespace iocp { namespace detail {
 		//Create I/O completion port
 		// See http://msdn.microsoft.com/en-us/library/aa363862%28VS.85%29.aspx
 		HANDLE h = CreateIoCompletionPort(
-			INVALID_HANDLE_VALUE, 
-			NULL, 
-			0, 
+			INVALID_HANDLE_VALUE,
+			NULL,
+			0,
 			maxConcurrency
 			);
 
@@ -229,16 +230,16 @@ namespace iocp { namespace detail {
 	int PostDisconnect(CSharedIocpData &iocpData, CConnection &c)
 	{
 		CIocpContext * disconnectContext = new CIocpContext(
-			c.m_socket, 
-			c.m_id, 
+			c.m_socket,
+			c.m_id,
 			CIocpContext::Disconnect,
 			0);
 
 		//Help threads get out of blocking - GetQueuedCompletionStatus()
 		if(PostQueuedCompletionStatus(
 			iocpData.m_ioCompletionPort,
-			0, 
-			(ULONG_PTR)&iocpData, 
+			0,
+			(ULONG_PTR)&iocpData,
 			(LPOVERLAPPED)disconnectContext) == FALSE)
 		{
 			return GetLastError();
@@ -252,9 +253,9 @@ namespace iocp { namespace detail {
 	//! From Network Programming for Microsoft Windows - APIs and Scalability
 	//!
 	//! Quote:
-	//! Applications should always load the extension functions themselves to 
-	//! avoid the performance penalty of the exported extension functions from 
-	//! MSWSOCK.DLL, because for each call they simply end up loading the 
+	//! Applications should always load the extension functions themselves to
+	//! avoid the performance penalty of the exported extension functions from
+	//! MSWSOCK.DLL, because for each call they simply end up loading the
 	//! same function.
 	//!
 	//! @param[in] s
